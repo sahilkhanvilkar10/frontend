@@ -30,3 +30,18 @@ export async function getScanStatus(scanId: string): Promise<ScanStatus> {
   if (!response.ok) throw new Error("Failed to fetch scan status");
   return response.json();
 }
+
+export interface Insights {
+  totalMonthlySpend: number;
+  upcomingThisWeek: number;
+  activeSubscriptions: number;
+  unknownCharges: number;
+  topServices: { name: string; amount: number }[];
+  categoryBreakdown: { category: string; amount: number }[];
+}
+
+export async function getInsights(userId: string): Promise<Insights> {
+  const response = await fetch(`${API_URL}/api/insights/${userId}`);
+  if (!response.ok) throw new Error("Failed to fetch insights");
+  return response.json();
+}
