@@ -1,4 +1,5 @@
 import type { Subscription } from "@/lib/types";
+import type { Insights } from "@/lib/api";
 import { Wallet, CalendarClock, ListChecks, HelpCircle } from "lucide-react";
 
 function isWithinNext7Days(date: string | null): boolean {
@@ -16,14 +17,26 @@ function monthlyAmount(sub: Subscription): number {
   return sub.amount;
 }
 
-export function SummaryCards({ subs }: { subs: Subscription[] | null }) {
+export function SummaryCards({
+  subs,
+  insights,
+}: {
+  subs: Subscription[] | null;
+  insights?: Insights | null;
+}) {
   const list = subs ?? [];
-  const totalMonthly = list.reduce((acc, s) => acc + monthlyAmount(s), 0);
-  const upcoming = list.filter((s) => isWithinNext7Days(s.nextBillingDate)).length;
-  const active = list.filter((s) => s.isActive).length;
-  const unknown = list.filter(
-    (s) => (s.classification || "").toUpperCase() === "UNKNOWN",
-  ).length;
+  const totalMonthly = insights
+    ? insights.totalMonthlySpend
+    : list.reduce((acc, s) => acc + monthlyAmount(s), 0);
+  const upcoming = insights
+    ? insights.upcomingThisWeek
+    : list.filter((s) => isWithinNext7Days(s.nextBillingDate)).length;
+  const active = insights
+    ? insights.activeSubscriptions
+    : list.filter((s) => s.isActive).length;
+  const unknown = insights
+    ? insights.unknownCharges
+    : list.filter((s) => (s.classification || "").toUpperCase() === "UNKNOWN").length;
 
   const cards = [
     {
@@ -38,11 +51,11 @@ export function SummaryCards({ subs }: { subs: Subscription[] | null }) {
 
   return (
     <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((c) => (
+      {cards.map((c, i) => (
         <div
           key={c.label}
-          className="rounded-xl p-5 shadow-md ring-1 ring-white/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-          style={{ backgroundColor: "#111827" }}
+          className="animate-fade-rise rounded-xl p-5 shadow-md ring-1 ring-white/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ backgroundColor: "#111827", animationDelay: `${i * 60}ms` }}
         >
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
