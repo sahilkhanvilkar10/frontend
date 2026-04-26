@@ -1,6 +1,12 @@
-import { Inbox } from "lucide-react";
+import { Inbox, Loader2 } from "lucide-react";
 
-export function EmptyState({ onScan }: { onScan?: () => void }) {
+export function EmptyState({
+  onScan,
+  scanning = false,
+}: {
+  onScan?: () => void;
+  scanning?: boolean;
+}) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl py-16 text-center ring-1 ring-white/5"
       style={{ backgroundColor: "#111827" }}>
@@ -13,9 +19,11 @@ export function EmptyState({ onScan }: { onScan?: () => void }) {
       </p>
       <button
         onClick={onScan}
-        className="mt-6 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-transform duration-200 hover:scale-[1.02] active:scale-[0.97]"
+        disabled={scanning}
+        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-transform duration-200 hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
       >
-        Scan Emails
+        {scanning && <Loader2 className="h-4 w-4 animate-spin" />}
+        {scanning ? "Scanning..." : "Scan Emails"}
       </button>
     </div>
   );
