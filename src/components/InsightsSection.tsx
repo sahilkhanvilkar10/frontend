@@ -54,13 +54,21 @@ export function InsightsError({ message, onRetry }: { message: string; onRetry: 
 }
 
 export function InsightsSection({ insights }: { insights: Insights }) {
-  const top = [...(insights.topServices ?? [])]
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
+  const topServicesRaw = Array.isArray(insights?.topServices) ? insights.topServices : [];
+  const top = [...topServicesRaw].sort((a, b) => b.amount - a.amount).slice(0, 5);
   const maxTop = Math.max(1, ...top.map((s) => s.amount));
 
+  const rawBreakdown = insights?.categoryBreakdown;
+  const breakdownEntries: { category: string; amount: number }[] = Array.isArray(rawBreakdown)
+    ? rawBreakdown
+    : rawBreakdown && typeof rawBreakdown === "object"
+      ? Object.entries(rawBreakdown).map(([category, amount]) => ({
+          category,
+          amount: Number(amount) || 0,
+        }))
+      : [];
   const breakdownMap = new Map(
-    (insights.categoryBreakdown ?? []).map((c) => [c.category.toLowerCase(), c.amount]),
+    breakdownEntries.map((c) => [c.category.toLowerCase(), c.amount]),
   );
   const breakdown = CATEGORIES.map((c) => ({ category: c, amount: breakdownMap.get(c) ?? 0 }));
   const maxCat = Math.max(1, ...breakdown.map((c) => c.amount));

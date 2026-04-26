@@ -37,7 +37,9 @@ export interface Insights {
   activeSubscriptions: number;
   unknownCharges: number;
   topServices: { name: string; amount: number }[];
-  categoryBreakdown: { category: string; amount: number }[];
+  categoryBreakdown:
+    | { category: string; amount: number }[]
+    | Record<string, number>;
 }
 
 export async function getInsights(userId: string): Promise<Insights> {
