@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SummaryCards } from "@/components/SummaryCards";
+import { FilterTabs, type FilterKey } from "@/components/FilterTabs";
+import { EmptyState } from "@/components/EmptyState";
 import { getSubscriptions } from "@/lib/api";
 import type { Subscription } from "@/lib/types";
 
@@ -35,6 +38,7 @@ function DashboardPage() {
   const [subs, setSubs] = useState<Subscription[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterKey>("ALL");
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +59,22 @@ function DashboardPage() {
     };
   }, []);
 
+  const filtered = useMemo(() => {
+    if (!subs) return [];
+    if (filter === "ALL") return subs;
+    return subs.filter((s) => (s.classification || "").toUpperCase() === filter);
+  }, [subs, filter]);
+
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: "#0f0f1a" }}>
+    <div className="min-h-screen text-white" style={{ backgroundColor: "#0f172a" }}>
       <Sidebar />
       <main className="ml-60 h-screen overflow-y-auto p-8">
         <h2 className="mb-2 text-3xl font-bold">Overview</h2>
         <p className="mb-8 text-sm text-gray-400">Your detected subscriptions.</p>
+
+        <SummaryCards subs={subs} />
+
+        <FilterTabs active={filter} onChange={setFilter} />
 
         {loading && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -77,15 +91,11 @@ function DashboardPage() {
           </div>
         )}
 
-        {!loading && !error && subs && subs.length === 0 && (
-          <div className="rounded-xl bg-white/5 p-12 text-center text-gray-400 ring-1 ring-white/10">
-            No subscriptions found
-          </div>
-        )}
+        {!loading && !error && subs && filtered.length === 0 && <EmptyState />}
 
-        {!loading && !error && subs && subs.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {subs.map((s) => (
+        {!loading && !error && subs && filtered.length > 0 && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((s) => (
               <SubscriptionCard key={s.id} sub={s} />
             ))}
           </div>
