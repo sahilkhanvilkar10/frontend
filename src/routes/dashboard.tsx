@@ -5,8 +5,16 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { SummaryCards } from "@/components/SummaryCards";
 import { FilterTabs, type FilterKey } from "@/components/FilterTabs";
 import { EmptyState } from "@/components/EmptyState";
-import { getScanStatus, getSubscriptions, startScan, type ScanStatus } from "@/lib/api";
+import {
+  getInsights,
+  getScanStatus,
+  getSubscriptions,
+  startScan,
+  type Insights,
+  type ScanStatus,
+} from "@/lib/api";
 import type { Subscription } from "@/lib/types";
+import { InsightsError, InsightsSection, InsightsSkeleton } from "@/components/InsightsSection";
 
 const DEFAULT_USER_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -48,6 +56,10 @@ function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("ALL");
 
+  const [insights, setInsights] = useState<Insights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+
   const [scanId, setScanId] = useState<string | null>(null);
   const [scanStatus, setScanStatus] = useState<"idle" | "running" | "completed" | "failed">("idle");
   const [emailsFetched, setEmailsFetched] = useState(0);
@@ -69,9 +81,23 @@ function DashboardPage() {
     }
   }, []);
 
+  const loadInsights = useCallback(async () => {
+    setInsightsLoading(true);
+    setInsightsError(null);
+    try {
+      const data = await getInsights(getUserId());
+      setInsights(data);
+    } catch (e: unknown) {
+      setInsightsError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadSubs();
-  }, [loadSubs]);
+    loadInsights();
+  }, [loadSubs, loadInsights]);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -101,6 +127,7 @@ function DashboardPage() {
           if (s.status === "completed") {
             stopPolling();
             await loadSubs();
+            await loadInsights();
           } else if (s.status === "failed") {
             stopPolling();
             setScanError("Scan failed. Please try again.");
@@ -112,7 +139,7 @@ function DashboardPage() {
         }
       }, 2000);
     },
-    [applyStatus, loadSubs, stopPolling],
+    [applyStatus, loadSubs, loadInsights, stopPolling],
   );
 
   const handleScan = useCallback(async () => {
@@ -146,7 +173,7 @@ function DashboardPage() {
         <h2 className="mb-2 text-3xl font-bold">Overview</h2>
         <p className="mb-8 text-sm text-gray-400">Your detected subscriptions.</p>
 
-        <SummaryCards subs={subs} />
+        <SummaryCards subs={subs} insights={insights} />
 
         {(isScanning || scanStatus === "completed" || scanStatus === "failed") && (
           <div
@@ -230,6 +257,14 @@ function DashboardPage() {
               <SubscriptionCard key={s.id} sub={s} />
             ))}
           </div>
+        )}
+
+        {insightsLoading && <InsightsSkeleton />}
+        {!insightsLoading && insightsError && (
+          <InsightsError message={insightsError} onRetry={loadInsights} />
+        )}
+        {!insightsLoading && !insightsError && insights && (
+          <InsightsSection insights={insights} />
         )}
       </main>
     </div>
