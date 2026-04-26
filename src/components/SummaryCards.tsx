@@ -25,28 +25,28 @@ export function SummaryCards({
   insights?: Insights | null;
 }) {
   const list = subs ?? [];
-  const totalMonthly = insights
-    ? insights.totalMonthlySpend
-    : list.reduce((acc, s) => acc + monthlyAmount(s), 0);
-  const upcoming = insights
-    ? insights.upcomingThisWeek
-    : list.filter((s) => isWithinNext7Days(s.nextBillingDate)).length;
-  const active = insights
-    ? insights.activeSubscriptions
-    : list.filter((s) => s.isActive).length;
-  const unknown = insights
-    ? insights.unknownCharges
-    : list.filter((s) => (s.classification || "").toUpperCase() === "UNKNOWN").length;
+  const totalMonthly =
+    insights?.totalMonthlySpend ??
+    list.reduce((acc, s) => acc + monthlyAmount(s), 0);
+  const upcoming =
+    insights?.upcomingThisWeek ??
+    list.filter((s) => isWithinNext7Days(s.nextBillingDate)).length;
+  const active =
+    insights?.activeSubscriptions ??
+    list.filter((s) => s.isActive).length;
+  const unknown =
+    insights?.unknownCharges ??
+    list.filter((s) => (s.classification || "").toUpperCase() === "UNKNOWN").length;
 
   const cards = [
     {
       label: "Total Monthly Spend",
-      value: `₹${Math.round(totalMonthly).toLocaleString("en-IN")}`,
+      value: `₹${Math.round(totalMonthly ?? 0).toLocaleString("en-IN")}`,
       icon: Wallet,
     },
-    { label: "Upcoming This Week", value: `${upcoming} items`, icon: CalendarClock },
-    { label: "Active Subscriptions", value: `${active} items`, icon: ListChecks },
-    { label: "Unknown Charges", value: `${unknown} items`, icon: HelpCircle },
+    { label: "Upcoming This Week", value: `${upcoming ?? 0} items`, icon: CalendarClock },
+    { label: "Active Subscriptions", value: `${active ?? 0} items`, icon: ListChecks },
+    { label: "Unknown Charges", value: `${unknown ?? 0} items`, icon: HelpCircle },
   ];
 
   return (
