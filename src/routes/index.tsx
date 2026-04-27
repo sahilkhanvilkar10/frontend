@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const OAUTH_URL =
-  "https://accounts.google.com/o/oauth2/v2/auth?client_id=4562707758-lah3hl8cagn8gllp1mn6br2gfvfj04u6.apps.googleusercontent.com&redirect_uri=http://localhost:8081/auth/callback&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent";
+const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=4562707758-lah3hl8cagn8gllp1mn6br2gfvfj04u6.apps.googleusercontent.com&redirect_uri=http://localhost:8081/auth/callback&response_type=code&scope=${[
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
+].join(" ")}&access_type=offline&prompt=consent`;
 
 export const Route = createFileRoute("/")({
   component: LoginPage,
@@ -19,7 +22,7 @@ export const Route = createFileRoute("/")({
 
 function LoginPage() {
   const handleConnect = () => {
-    window.location.href = OAUTH_URL;
+    window.location.href = GOOGLE_AUTH_URL;
   };
 
   return (
