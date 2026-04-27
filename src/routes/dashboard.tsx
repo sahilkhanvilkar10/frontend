@@ -16,14 +16,9 @@ import {
 import type { Subscription } from "@/lib/types";
 import { InsightsError, InsightsSection, InsightsSkeleton } from "@/components/InsightsSection";
 
-const DEFAULT_USER_ID = "11111111-1111-1111-1111-111111111111";
-
-function getUserId(): string {
-  if (typeof window === "undefined") return DEFAULT_USER_ID;
-  const stored = window.localStorage.getItem("userId");
-  if (stored) return stored;
-  window.localStorage.setItem("userId", DEFAULT_USER_ID);
-  return DEFAULT_USER_ID;
+function getUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem("userId");
 }
 
 export const Route = createFileRoute("/dashboard")({
@@ -51,6 +46,7 @@ function SkeletonCard() {
 }
 
 function DashboardPage() {
+  const [authChecked, setAuthChecked] = useState(false);
   const [subs, setSubs] = useState<Subscription[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +68,9 @@ function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getSubscriptions(getUserId());
+      const uid = getUserId();
+      if (!uid) return;
+      const data = await getSubscriptions(uid);
       setSubs(data);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -85,7 +83,9 @@ function DashboardPage() {
     setInsightsLoading(true);
     setInsightsError(null);
     try {
-      const data = await getInsights(getUserId());
+      const uid = getUserId();
+      if (!uid) return;
+      const data = await getInsights(uid);
       setInsights(data);
     } catch (e: unknown) {
       setInsightsError(e instanceof Error ? e.message : "Unknown error");
@@ -95,6 +95,13 @@ function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const uid = window.localStorage.getItem("userId");
+    if (!uid) {
+      window.location.href = "/";
+      return;
+    }
+    setAuthChecked(true);
     loadSubs();
     loadInsights();
   }, [loadSubs, loadInsights]);
@@ -149,7 +156,9 @@ function DashboardPage() {
     setSubscriptionsFound(0);
     setScanStatus("running");
     try {
-      const { scanId: id } = await startScan(getUserId());
+      const uid = getUserId();
+      if (!uid) throw new Error("Not authenticated");
+      const { scanId: id } = await startScan(uid);
       setScanId(id);
       startPolling(id);
     } catch (e: unknown) {
@@ -165,6 +174,8 @@ function DashboardPage() {
   }, [subs, filter]);
 
   const isScanning = scanStatus === "running";
+
+  if (!authChecked) return null;
 
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#0f172a" }}>
