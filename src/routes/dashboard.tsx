@@ -133,20 +133,24 @@ function DashboardPage() {
           applyStatus(s);
           if (s.status === "completed") {
             stopPolling();
-            await loadSubs();
-            await loadInsights();
+            window.location.reload();
           } else if (s.status === "failed") {
             stopPolling();
+            setScanStatus("failed");
             setScanError("Scan failed. Please try again.");
+            if (typeof window !== "undefined") {
+              window.alert("Scan failed");
+            }
           }
         } catch (e: unknown) {
           stopPolling();
           setScanStatus("failed");
           setScanError(e instanceof Error ? e.message : "Polling failed");
+          console.error(e);
         }
       }, 2000);
     },
-    [applyStatus, loadSubs, loadInsights, stopPolling],
+    [applyStatus, stopPolling],
   );
 
   const handleScan = useCallback(async () => {
