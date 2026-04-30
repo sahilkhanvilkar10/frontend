@@ -1,11 +1,10 @@
-export type FilterKey = "ALL" | "CONFIRMED" | "LIKELY" | "POTENTIAL" | "UNKNOWN";
+export type FilterKey = "ALL" | "CONFIRMED" | "LIKELY" | "POTENTIAL";
 
 const TABS: { key: FilterKey; label: string }[] = [
   { key: "ALL", label: "All" },
   { key: "CONFIRMED", label: "Confirmed" },
   { key: "LIKELY", label: "Likely" },
   { key: "POTENTIAL", label: "Potential" },
-  { key: "UNKNOWN", label: "Unknown" },
 ];
 
 export function FilterTabs({
