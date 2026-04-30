@@ -1,13 +1,13 @@
 import type { Subscription } from "@/lib/types";
 import type { Insights } from "@/lib/api";
-import { Wallet, CalendarClock, ListChecks, HelpCircle } from "lucide-react";
+import { Wallet, CalendarClock, ListChecks, CalendarDays } from "lucide-react";
 
-function isWithinNext7Days(date: string | null): boolean {
+function isWithinNextDays(date: string | null, days: number): boolean {
   if (!date) return false;
   const d = new Date(date).getTime();
   if (Number.isNaN(d)) return false;
   const now = Date.now();
-  return d >= now && d <= now + 7 * 24 * 60 * 60 * 1000;
+  return d >= now && d <= now + days * 24 * 60 * 60 * 1000;
 }
 
 function monthlyAmount(sub: Subscription): number {
@@ -24,19 +24,21 @@ export function SummaryCards({
   subs: Subscription[] | null;
   insights?: Insights | null;
 }) {
-  const list = subs ?? [];
+  const list = (subs ?? []).filter(
+    (s) => (s.classification || "").toUpperCase() !== "UNKNOWN",
+  );
   const totalMonthly =
     insights?.totalMonthlySpend ??
     list.reduce((acc, s) => acc + monthlyAmount(s), 0);
   const upcoming =
     insights?.upcomingThisWeek ??
-    list.filter((s) => isWithinNext7Days(s.nextBillingDate)).length;
+    list.filter((s) => isWithinNextDays(s.nextBillingDate, 7)).length;
   const active =
     insights?.activeSubscriptions ??
     list.filter((s) => s.isActive).length;
-  const unknown =
-    insights?.unknownCharges ??
-    list.filter((s) => (s.classification || "").toUpperCase() === "UNKNOWN").length;
+  const upcomingMonth = list.filter((s) =>
+    isWithinNextDays(s.nextBillingDate, 30),
+  ).length;
 
   const cards = [
     {
@@ -46,7 +48,7 @@ export function SummaryCards({
     },
     { label: "Upcoming This Week", value: `${upcoming ?? 0} items`, icon: CalendarClock },
     { label: "Active Subscriptions", value: `${active ?? 0} items`, icon: ListChecks },
-    { label: "Unknown Charges", value: `${unknown ?? 0} items`, icon: HelpCircle },
+    { label: "Upcoming This Month", value: `${upcomingMonth} items`, icon: CalendarDays },
   ];
 
   return (
