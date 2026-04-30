@@ -4,10 +4,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   subscription: "bg-indigo-500",
   bill: "bg-blue-500",
   financial: "bg-emerald-500",
-  unknown: "bg-gray-500",
 };
 
-const CATEGORIES = ["subscription", "bill", "financial", "unknown"] as const;
+const CATEGORIES = ["subscription", "bill", "financial"] as const;
 
 function formatINR(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
