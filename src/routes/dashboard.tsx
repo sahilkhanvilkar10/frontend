@@ -173,8 +173,11 @@ function DashboardPage() {
 
   const filtered = useMemo(() => {
     if (!subs) return [];
-    if (filter === "ALL") return subs;
-    return subs.filter((s) => (s.classification || "").toUpperCase() === filter);
+    const visible = subs.filter(
+      (s) => (s.classification || "").toUpperCase() !== "UNKNOWN",
+    );
+    if (filter === "ALL") return visible;
+    return visible.filter((s) => (s.classification || "").toUpperCase() === filter);
   }, [subs, filter]);
 
   const isScanning = scanStatus === "running";
